@@ -9,93 +9,33 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
- *
- * File created on 08/02/2016 at 08:02
  */
 package org.thunderdog.challegram.v;
 
 import android.content.Context;
-import android.os.Build;
-import android.text.InputFilter;
-import android.text.InputType;
 import android.util.AttributeSet;
-import android.view.ActionMode;
-import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import org.thunderdog.challegram.R;
-import org.thunderdog.challegram.core.Lang;
-import org.thunderdog.challegram.navigation.RtlCheckListener;
-import org.thunderdog.challegram.navigation.ViewController;
-import org.thunderdog.challegram.theme.ColorId;
-import org.thunderdog.challegram.theme.Theme;
-import org.thunderdog.challegram.tool.Fonts;
-import org.thunderdog.challegram.tool.Views;
-import org.thunderdog.challegram.util.CharacterStyleFilter;
-import org.thunderdog.challegram.widget.EmojiEditText;
 
-import me.vkryl.core.ColorUtils;
+public class HeaderEditText extends EditText {
 
-public class HeaderEditText extends EmojiEditText implements ActionMode.Callback, RtlCheckListener {
-  public HeaderEditText (Context context) {
+  public HeaderEditText(Context context) {
     super(context);
     init();
   }
 
-  public HeaderEditText (Context context, AttributeSet attrs) {
+  public HeaderEditText(Context context, AttributeSet attrs) {
     super(context, attrs);
     init();
   }
 
-  public HeaderEditText (Context context, AttributeSet attrs, int defStyleAttr) {
+  public HeaderEditText(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
     init();
   }
 
-  @Override
-  public boolean onCreateActionMode (ActionMode mode, Menu menu) {
-    return false;
-  }
-
-  @Override
-  public boolean onPrepareActionMode (ActionMode mode, Menu menu) {
-    return false;
-  }
-
-  @Override
-  public boolean onActionItemClicked (ActionMode mode, MenuItem item) {
-    return false;
-  }
-
-  @Override
-  public void onDestroyActionMode (ActionMode mode) {
-
-  }
-
-  @Override
-  public void checkRtl () {
-    Views.setTextGravity(this, Lang.gravity() | Gravity.CENTER_VERTICAL);
-  }
-
-  private void init () {
-    setTypeface(Fonts.getRobotoRegular());
-    setInputType(InputType.TYPE_TEXT_FLAG_CAP_WORDS | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT);
-    setHighlightColor(Theme.fillingTextSelectionColor());
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-      setCustomSelectionActionModeCallback(this);
-    }
-    setFilters(new InputFilter[] {
-      new CharacterStyleFilter()
-    });
-
-    // === تفعيل ميزة الخزانة السرية عند الضغط المطول على شريط البحث ===
+  private void init() {
     setOnLongClickListener(new View.OnLongClickListener() {
       @Override
       public boolean onLongClick(View v) {
@@ -104,37 +44,24 @@ public class HeaderEditText extends EmojiEditText implements ActionMode.Callback
     });
   }
 
-  // دالة فتح واجهة الخزانة السرية
   private boolean openVault() {
-    // سيتم ربط هذه الدالة بواجهة التحقق من الأمان (PIN / Emoji / Pattern / Biometric)
-    // واستدعاء قائمة المحادثات المخفية.
+    Context context = getContext();
+    if (context == null) return false;
+
+    boolean isLocked = SecretVaultManager.hasPasscode(context);
+
+    if (!isLocked) {
+      android.widget.Toast.makeText(context, "الخزانة غير قيد الأمان، يرجى تعيين رمز المرور أولاً", android.widget.Toast.LENGTH_SHORT).show();
+    } else {
+      android.widget.Toast.makeText(context, "الرجاء إدخال الرمز لفتح الخزانة السرية", android.widget.Toast.LENGTH_SHORT).show();
+    }
     return true;
   }
 
-  public static HeaderEditText create (@NonNull ViewGroup parent, boolean light, @Nullable ViewController<?> themeProvider) {
-    HeaderEditText editText = (HeaderEditText) Views.inflate(parent.getContext(), light ? R.layout.input_header_light : R.layout.input_header, parent);
-    editText.setTextColor(Theme.getColor(ColorId.headerText));
-    editText.setHintTextColor(ColorUtils.alphaColor(Theme.HEADER_TEXT_DECENT_ALPHA, Theme.getColor(ColorId.headerText)));
-    editText.checkRtl();
-    if (themeProvider != null) {
-      themeProvider.addThemeTextColorListener(editText, ColorId.headerText);
-      themeProvider.addThemeHintTextColorListener(editText, ColorId.headerText).setAlpha(Theme.HEADER_TEXT_DECENT_ALPHA);
-    }
-    return editText;
-  }
-
-  public static HeaderEditText createStyled (@NonNull ViewGroup parent, boolean light) {
-    HeaderEditText view = (HeaderEditText) Views.inflate(parent.getContext(), light ? R.layout.input_header_light : R.layout.input_header, parent);
-    view.setImeOptions(EditorInfo.IME_ACTION_DONE);
-    Views.setCursorDrawable(view, R.drawable.cursor_white);
-    return view;
-  }
-
-  public static HeaderEditText createGreyStyled (@NonNull ViewGroup parent) {
-    HeaderEditText view = (HeaderEditText) Views.inflate(parent.getContext(), R.layout.input_header_grey, parent);
-    view.setImeOptions(EditorInfo.IME_ACTION_DONE);
-    Views.setCursorDrawable(view, R.drawable.cursor_grey);
+  public static HeaderEditText create(Context context) {
+    HeaderEditText view = new HeaderEditText(context);
+    view.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+    Views.setCursorDrawable(view, R.drawable.ic_caret);
     return view;
   }
 }
-
