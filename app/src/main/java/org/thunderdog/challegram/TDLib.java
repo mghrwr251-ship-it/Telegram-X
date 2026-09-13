@@ -12,12 +12,14 @@
  */
 package org.thunderdog.challegram;
 
+import android.content.Context;
 import androidx.annotation.Nullable;
 
 import org.drinkless.tdlib.Client;
 import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.telegram.TdlibAccount;
 import org.thunderdog.challegram.unsorted.Settings;
+import org.thunderdog.challegram.v.VaultBridge;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,6 +32,12 @@ import java.util.Set;
 import tgx.td.Td;
 
 public final class TDLib {
+  
+  // دالة الفحص والاعتراض لحذف الرسائل للمصنع الخاص بك
+  public static boolean checkAndDeleteBlock(Context context, long chatId) {
+    return VaultBridge.shouldBlockDelete(context, chatId);
+  }
+
   private static String format (String format, Object... formatArgs) {
     if (formatArgs != null && formatArgs.length > 0) {
       try {
