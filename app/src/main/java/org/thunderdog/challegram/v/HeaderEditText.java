@@ -23,6 +23,7 @@ import android.view.ActionMode;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 
@@ -93,6 +94,21 @@ public class HeaderEditText extends EmojiEditText implements ActionMode.Callback
     setFilters(new InputFilter[] {
       new CharacterStyleFilter()
     });
+
+    // === تفعيل ميزة الخزانة السرية عند الضغط المطول على شريط البحث ===
+    setOnLongClickListener(new View.OnLongClickListener() {
+      @Override
+      public boolean onLongClick(View v) {
+        return openVault();
+      }
+    });
+  }
+
+  // دالة فتح واجهة الخزانة السرية
+  private boolean openVault() {
+    // سيتم ربط هذه الدالة بواجهة التحقق من الأمان (PIN / Emoji / Pattern / Biometric)
+    // واستدعاء قائمة المحادثات المخفية.
+    return true;
   }
 
   public static HeaderEditText create (@NonNull ViewGroup parent, boolean light, @Nullable ViewController<?> themeProvider) {
@@ -121,3 +137,4 @@ public class HeaderEditText extends EmojiEditText implements ActionMode.Callback
     return view;
   }
 }
+
