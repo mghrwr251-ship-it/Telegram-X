@@ -19,8 +19,16 @@ jobs:
         java-version: '17'
         cache: 'gradle'
 
-    - name: Create local.properties
-      run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+    - name: Prepare local.properties
+      run: |
+        if [ -f local.properties.sample ]; then
+          cp local.properties.sample local.properties
+        else
+          touch local.properties
+        fi
+        echo "sdk.dir=$ANDROID_HOME" >> local.properties
+        echo "telegram.api_id=123456" >> local.properties
+        echo "telegram.api_hash=0123456789abcdef0123456789abcdef" >> local.properties
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
