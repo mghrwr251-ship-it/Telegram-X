@@ -73,4 +73,16 @@ public class SecretVaultManager {
     Set<String> hidden = prefs.getStringSet(KEY_HIDDEN_CHATS, new HashSet<>());
     return hidden.contains(String.valueOf(chatId));
   }
+
+  // دالة لحذف الخزانة وإعادة تعيين الرمز في حال نسيانه
+  public static void resetVault(Context context) {
+    Context c = context.getApplicationContext();
+    if (c != null) {
+      c.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        .edit()
+        .clear()
+        .apply();
+    }
+  }
 }
+
