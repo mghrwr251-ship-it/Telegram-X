@@ -27,7 +27,7 @@ jobs:
     - name: Create local.properties
       run: |
         echo "sdk.dir=$ANDROID_HOME" > local.properties
-        echo "telegram.api_id=2496" >> local.properties
+        echo "telegram.api_id=2496" > local.properties
         echo "telegram.api_hash=8da85b0d5bfe62a52e5b04d173082afb" >> local.properties
         echo "tgx.extension=none" >> local.properties
 
@@ -53,8 +53,8 @@ jobs:
     - name: Clean Build Cache
       run: ./gradlew clean --no-daemon
 
-    - name: Build APK (Universal Debug)
-      run: ./gradlew assembleUniversalDebug --no-daemon --stacktrace
+    - name: Build APK (Latest Universal Debug)
+      run: ./gradlew assembleLatestUniversalDebug --no-daemon --stacktrace
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
