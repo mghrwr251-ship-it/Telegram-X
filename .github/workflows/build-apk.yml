@@ -24,8 +24,14 @@ jobs:
 
       - name: Create local.properties
         run: |
-          touch local.properties
           echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "telegram.api_id=2040" >> local.properties
+          echo "telegram.api_hash=b18441a1ed609e10d277d6ee1db7d74c" >> local.properties
+
+      - name: Run Telegram X Setup Script
+        run: |
+          chmod +x scripts/setup.sh
+          ./scripts/setup.sh --skip-sdk-setup || true
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --no-daemon -Dorg.gradle.jvmargs="-Xmx4g"
@@ -34,4 +40,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Telegram-X-Debug-APK
-          path: app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/**/*.apk
