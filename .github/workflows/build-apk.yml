@@ -20,10 +20,10 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Android Licenses natively
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      - name: Configure Environment (Bypass Memory & Cache Issues)
+      - name: Configure Environment
         run: |
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           echo "telegram.api_id=2040" >> local.properties
@@ -37,16 +37,12 @@ jobs:
           chmod +x scripts/setup.sh
           ./scripts/setup.sh --skip-sdk-setup || true
 
-      - name: FORCE REBUILD strings.xml (The Ultimate Fix)
+      - name: FORCE REBUILD strings.xml
         run: |
           FILE="app/src/main/res/values/strings.xml"
           if [ -f "$FILE" ]; then
-            echo "Rebuilding strings.xml to guarantee valid XML format..."
-            # كتابة ترويسة نظيفة تماماً بدون أي رموز مخفية
             echo '<?xml version="1.0" encoding="utf-8"?>' > temp_strings.xml
-            # استخراج محتوى الملف الأصلي فقط متجاهلاً أي شوائب في الأعلى
             sed -n '/<resources>/,$p' "$FILE" >> temp_strings.xml
-            # استبدال الملف المعطوب بالملف النظيف
             mv temp_strings.xml "$FILE"
           fi
 
