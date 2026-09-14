@@ -23,12 +23,11 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Configure Gradle and Local Properties
+      - name: Configure Environment (Bypass Memory & Cache Issues)
         run: |
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           echo "telegram.api_id=2040" >> local.properties
           echo "telegram.api_hash=b18441a1ed609e10d277d6ee1db7d74c" >> local.properties
-          # تأمين استهلاك الذاكرة وتعطيل الكاش الفاسد
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g" >> gradle.properties
           echo "org.gradle.workers.max=2" >> gradle.properties
           echo "org.gradle.caching=false" >> gradle.properties
@@ -38,14 +37,18 @@ jobs:
           chmod +x scripts/setup.sh
           ./scripts/setup.sh --skip-sdk-setup || true
 
-      - name: Sanitize XML Files (Fix Prolog Errors)
+      - name: FORCE REBUILD strings.xml (The Ultimate Fix)
         run: |
-          # إزالة الرموز المخفية (BOM) وتصحيح ترميز الملفات
-          sudo apt-get install -y dos2unix
-          if [ -f app/src/main/res/values/strings.xml ]; then
-            sed -i '1s/^\xEF\xBB\xBF//' app/src/main/res/values/strings.xml
+          FILE="app/src/main/res/values/strings.xml"
+          if [ -f "$FILE" ]; then
+            echo "Rebuilding strings.xml to guarantee valid XML format..."
+            # كتابة ترويسة نظيفة تماماً بدون أي رموز مخفية
+            echo '<?xml version="1.0" encoding="utf-8"?>' > temp_strings.xml
+            # استخراج محتوى الملف الأصلي فقط متجاهلاً أي شوائب في الأعلى
+            sed -n '/<resources>/,$p' "$FILE" >> temp_strings.xml
+            # استبدال الملف المعطوب بالملف النظيف
+            mv temp_strings.xml "$FILE"
           fi
-          find . -name "*.xml" -type f -exec dos2unix {} +
 
       - name: Force Clean Google Services JSON
         run: |
