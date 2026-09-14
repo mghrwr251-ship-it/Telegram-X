@@ -37,13 +37,12 @@ jobs:
           chmod +x scripts/setup.sh
           ./scripts/setup.sh --skip-sdk-setup || true
 
-      - name: FORCE REBUILD strings.xml
+      - name: Fix XML BOM Issue Safely
         run: |
           FILE="app/src/main/res/values/strings.xml"
           if [ -f "$FILE" ]; then
-            echo '<?xml version="1.0" encoding="utf-8"?>' > temp_strings.xml
-            sed -n '/<resources>/,$p' "$FILE" >> temp_strings.xml
-            mv temp_strings.xml "$FILE"
+            # إزالة الرموز المخفية (BOM) من بداية الملف فقط
+            sed -i '1s/^\xEF\xBB\xBF//' "$FILE"
           fi
 
       - name: Force Clean Google Services JSON
