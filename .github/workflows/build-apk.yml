@@ -27,9 +27,15 @@ jobs:
     - name: Create local.properties
       run: |
         echo "sdk.dir=$ANDROID_HOME" > local.properties
-        echo "telegram.api_id=2496" > local.properties
+        echo "telegram.api_id=2496" >> local.properties
         echo "telegram.api_hash=8da85b0d5bfe62a52e5b04d173082afb" >> local.properties
         echo "tgx.extension=none" >> local.properties
+
+    - name: Apply Customizations (Name and Settings Title)
+      run: |
+        find . -name "strings.xml" -exec sed -i 's/>Telegram X</>تلجرام فيلسوف عصري</g' {} +
+        find . -name "strings.xml" -exec sed -i 's/>Telegram<.*?>Telegram X</>تلجرام فيلسوف عصري</g' {} +
+        find . -name "strings.xml" -exec sed -i 's/>Settings</>إضافات فيلسوف</g' {} +
 
     - name: Grant execute permissions to scripts
       run: |
@@ -43,6 +49,9 @@ jobs:
         if [ -f scripts/setup.sh ]; then
           yes | ./scripts/setup.sh || true
         fi
+
+    - name: Clean Build Cache
+      run: ./gradlew clean --no-daemon
 
     - name: Build APK (Universal Debug)
       run: ./gradlew assembleUniversalDebug --no-daemon --stacktrace
