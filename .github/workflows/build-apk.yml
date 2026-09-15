@@ -34,7 +34,7 @@ jobs:
 
       - name: Inject API Keys & Environment Configs
         run: |
-          # حقن مفاتيح الـ API الخاصة بتليجرام في ملف الإعدادات داخل المشروع
+          # حقن مفاتيح الـ API الخاصة بتليجرام في ملف الإعدادات
           BUILD_VARS_FILE=$(find . -name "BuildVars.java" -o -name "BuildVars.kt" | head -n 1)
           if [ -f "$BUILD_VARS_FILE" ]; then
             sed -i 's/APP_ID = [0-9]*;/APP_ID = 29741001;/g' "$BUILD_VARS_FILE"
@@ -43,6 +43,17 @@ jobs:
           else
             echo "BuildVars file not found, skipping inline injection."
           fi
+
+      - name: Change App Name to تلجرام فيلسوف عصري
+        run: |
+          # البحث عن ملفات strings.xml وتعديل اسم التطبيق الافتراضي
+          find . -name "strings.xml" -print0 | while IFS= read -r -d '' file; do
+            # البحث عن الوسم الذي يحتوي على اسم التطبيق وتعديله
+            if grep -q "app_name" "$file"; then
+              sed -i 's/<string name="app_name">[^<]*<\/string>/<string name="app_name">تلجرام فيلسوف عصري<\/string>/g' "$file"
+              echo "Updated app name in $file"
+            fi
+          done
 
       - name: Build APK with Gradle
         run: |
