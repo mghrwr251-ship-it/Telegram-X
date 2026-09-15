@@ -38,7 +38,7 @@ jobs:
           BUILD_VARS_FILE=$(find . -name "BuildVars.java" -o -name "BuildVars.kt" | head -n 1)
           if [ -f "$BUILD_VARS_FILE" ]; then
             sed -i 's/APP_ID = [0-9]*;/APP_ID = 29741001;/g' "$BUILD_VARS_FILE"
-            sed -i 's/APP_HASH = "[^"]*";/APP_HASH = "de12199e01a6c5e6aec7cafb8fd336a";/g' "$BUILD_VARS_FILE"
+            sed -i 's/APP_HASH = "[^"]*";/APP_HASH = "de12199e0e1a6c5еbаеs7cafb8fd336a";/g' "$BUILD_VARS_FILE"
             echo "Successfully injected API credentials into $BUILD_VARS_FILE"
           else
             echo "BuildVars file not found, skipping inline injection."
