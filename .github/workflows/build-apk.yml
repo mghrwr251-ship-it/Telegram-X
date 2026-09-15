@@ -43,3 +43,13 @@ jobs:
           else
             echo "BuildVars file not found, skipping inline injection."
           fi
+
+      - name: Build APK with Gradle
+        run: |
+          ./gradlew assembleDebug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Telegram-X-Debug-APK
+          path: app/build/outputs/apk/debug/*.apk
