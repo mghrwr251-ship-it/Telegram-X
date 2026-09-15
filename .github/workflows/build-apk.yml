@@ -47,12 +47,12 @@ jobs:
           echo "org.gradle.workers.max=1" >> gradle.properties
           echo "org.gradle.caching=false" >> gradle.properties
 
-      - name: Global Name Replacement (Replace All Occurrences)
+      - name: Safe App Name Override (UI & Strings Only)
         run: |
-          # استبدال شامل لكل ملفات XML والـ Manifest والمصادر
-          find . -type f \( -name "*.xml" -o -name "*.java" -o -name "*.kt" -o -name "*.gradle" \) -exec sed -i 's/تيليجرام X/تلجرام فيلسوف عصري/g' {} +
-          find . -type f \( -name "*.xml" -o -name "*.java" -o -name "*.kt" -o -name "*.gradle" \) -exec sed -i 's/Telegram X/تلجرام فيلسوف عصري/g' {} +
-          find . -type f \( -name "*.xml" -o -name "*.java" -o -name "*.kt" -o -name "*.gradle" \) -exec sed -i 's/TelegramX/تلجرام فيلسوف عصري/g' {} +
+          # استبدال آمن يقتصر على ملفات الواجهات والنصوص فقط دون التعديل على الأكواد البرمجية
+          find . -type f \( -name "strings*.xml" -o -name "AndroidManifest.xml" \) -exec sed -i 's/تيليجرام X/تلجرام فيلسوف عصري/g' {} +
+          find . -type f \( -name "strings*.xml" -o -name "AndroidManifest.xml" \) -exec sed -i 's/Telegram X/تلجرام فيلسوف عصري/g' {} +
+          find . -type f \( -name "strings*.xml" -o -name "AndroidManifest.xml" \) -exec sed -i 's/>Telegram</>تلجرام فيلسوف عصري</g' {} +
 
       - name: The Ultimate XML Sanitizer (Python)
         run: |
