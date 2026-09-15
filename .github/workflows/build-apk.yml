@@ -8,71 +8,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          submodules: recursive
-          fetch-depth: 0
           lfs: true
+          submodules: recursive
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
-          java-version: '21'
+          distribution: 'temurin'
+          java-version: '17'
 
-      - name: Accept Android Licenses natively
-        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-
-      - name: Configure Environment (Optimized for C++ RAM)
+      - name: Setup API Keys & Memory Fixes
         run: |
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
-          echo "telegram.api_id=2040" >> local.properties
-          echo "telegram.api_hash=b18441a1ed609e10d277d6ee1db7d74c" >> local.properties
-          # تقليل استهلاك ذاكرة جافا لترك مساحة كافية لمترجم C++
-          echo "org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m" >> gradle.properties
-          # إجبار النظام على استخدام مسار بناء واحد لمنع الانهيار
-          echo "org.gradle.workers.max=1" >> gradle.properties
-          echo "org.gradle.caching=false" >> gradle.properties
+          # إضافة مفاتيح الـ API الخاصة بك
+          echo "telegram.api_id=29741001" > local.properties
+          echo "telegram.api_hash=de12199e0e1a6c5e6aec7cafb8fd336a" >> local.properties
+          
+          # حلول الذاكرة لمنع تعليق البناء
+          echo "org.gradle.jvmargs=-Xmx4g" >> gradle.properties
+          echo "android.enableAapt2Daemon=false" >> gradle.properties
 
-      - name: Run Telegram X Setup Script
+      - name: Change App Name to "تلجرام فيلسوف عصري"
         run: |
-          chmod +x scripts/setup.sh
-          ./scripts/setup.sh --skip-sdk-setup || true
+          # تعديل الاسم في شاشة الترحيب وجميع اللغات
+          find . -name "strings*.xml" -exec sed -i 's/تيليجرام X/تلجرام فيلسوف عصري/g' {} +
+          find . -name "strings*.xml" -exec sed -i 's/Telegram X/تلجرام فيلسوف عصري/g' {} +
 
-      - name: The Ultimate XML Sanitizer (Python)
-        run: |
-          python -c "
-          import os, glob
-          for filepath in glob.glob('app/src/main/res/**/*.xml', recursive=True):
-              try:
-                  with open(filepath, 'rb') as f:
-                      data = f.read()
-                  start_idx = data.find(b'<')
-                  if start_idx > 0:
-                      print(f'Sanitized: {filepath}')
-                      with open(filepath, 'wb') as f:
-                          f.write(data[start_idx:])
-              except Exception as e:
-                  pass
-          "
+      - name: Make Gradle Executable
+        run: chmod +x gradlew
 
-      - name: Force Clean Google Services JSON
-        run: |
-          cat << 'EOF' > app/google-services.json
-          {
-            "project_info": { "project_number": "12345", "project_id": "tgx", "storage_bucket": "tgx" },
-            "client": [ { "client_info": { "mobilesdk_app_id": "1:123:android:456", "android_client_info": { "package_name": "org.example.tgx" } }, "oauth_client": [], "api_key": [ { "current_key": "AIzaSyDummyKey" } ], "services": { "analytics_service": { "status": 1 }, "appinvite_service": { "status": 1 }, "ads_service": { "status": 1 } } } ],
-            "configuration_version": "1"
-          }
-          EOF
+      - name: Build the APK
+        run: ./gradlew assembleDebug
 
-      - name: Build Latest Universal Debug APK
-        run: ./gradlew assembleLatestUniversalDebug --no-daemon --max-workers=1 --stacktrace
-
-      - name: Upload APK
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: Telegram-X-Debug-APK
           path: app/build/outputs/apk/**/*.apk
