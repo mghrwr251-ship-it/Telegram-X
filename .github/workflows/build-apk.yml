@@ -34,67 +34,12 @@ jobs:
 
       - name: Inject API Keys & Environment Configs
         run: |
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
-          echo "telegram.api_id=29741001" >> local.properties
-          echo "telegram.api_hash=de12199e0e1a6c5e6aec7cafb8fd336a" >> local.properties
-          
-          # تمرير المفاتيح في gradle.properties
-          echo "telegram.api_id=29741001" >> gradle.properties
-          echo "telegram.api_hash=de12199e0e1a6c5e6aec7cafb8fd336a" >> gradle.properties
-          
-          # إعدادات الذاكرة والمعالج
-          echo "org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m" >> gradle.properties
-          echo "org.gradle.workers.max=1" >> gradle.properties
-          echo "org.gradle.caching=false" >> gradle.properties
-
-      - name: Safe App Name Override (UI & Strings Only)
-        run: |
-          # استبدال آمن يقتصر على ملفات الواجهات والنصوص فقط دون التعديل على الأكواد البرمجية
-          find . -type f \( -name "strings*.xml" -o -name "AndroidManifest.xml" \) -exec sed -i 's/تيليجرام X/تلجرام فيلسوف عصري/g' {} +
-          find . -type f \( -name "strings*.xml" -o -name "AndroidManifest.xml" \) -exec sed -i 's/Telegram X/تلجرام فيلسوف عصري/g' {} +
-          find . -type f \( -name "strings*.xml" -o -name "AndroidManifest.xml" \) -exec sed -i 's/>Telegram</>تلجرام فيلسوف عصري</g' {} +
-
-      - name: The Ultimate XML Sanitizer (Python)
-        run: |
-          python -c "
-          import os, glob
-          for filepath in glob.glob('app/src/main/res/**/*.xml', recursive=True):
-              try:
-                  with open(filepath, 'rb') as f:
-                      data = f.read()
-                  start_idx = data.find(b'<')
-                  if start_idx > 0:
-                      print(f'Sanitized: {filepath}')
-                      with open(filepath, 'wb') as f:
-                          f.write(data[start_idx:])
-              except Exception as e:
-                  pass
-          "
-
-      - name: Force Clean Google Services JSON
-        run: |
-          cat << 'EOF' > app/google-services.json
-          {
-            "project_info": { "project_number": "12345", "project_id": "tgx", "storage_bucket": "tgx" },
-            "client": [ { "client_info": { "mobilesdk_app_id": "1:123:android:456", "android_client_info": { "package_name": "org.example.tgx" } }, "oauth_client": [], "api_key": [ { "current_key": "AIzaSyDummyKey" } ], "services": { "analytics_service": { "status": 1 }, "appinvite_service": { "status": 1 }, "ads_service": { "status": 1 } } } ],
-            "configuration_version": "1"
-          }
-          EOF
-
-      - name: Fast Pre-Flight Verification Check
-        run: |
-          echo "=== فحص توفر مفاتيح الاتصال ==="
-          grep -q "telegram.api_id=29741001" local.properties || exit 1
-          grep -q "telegram.api_hash=de12199e0e1a6c5e6aec7cafb8fd336a" local.properties || exit 1
-          echo "=== فحص صحة الأوامر وهيكلية الملفات ==="
-          ./gradlew assembleLatestUniversalDebug --dry-run
-
-      - name: Build Latest Universal Debug APK
-        run: ./gradlew assembleLatestUniversalDebug -Ptelegram.api_id=29741001 -Ptelegram.api_hash=de12199e0e1a6c5e6aec7cafb8fd336a --no-daemon --max-workers=1 --stacktrace
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: Telegram-X-Debug-APK
-          path: app/build/outputs/apk/**/*.apk
+          # حقن مفاتيح الـ API الخاصة بتليجرام في ملف الإعدادات داخل المشروع
+          BUILD_VARS_FILE=$(find . -name "BuildVars.java" -o -name "BuildVars.kt" | head -n 1)
+          if [ -f "$BUILD_VARS_FILE" ]; then
+            sed -i 's/APP_ID = [0-9]*;/APP_ID = 29741001;/g' "$BUILD_VARS_FILE"
+            sed -i 's/APP_HASH = "[^"]*";/APP_HASH = "de12199e01a6c5e6aec7cafb8fd336a";/g' "$BUILD_VARS_FILE"
+            echo "Successfully injected API credentials into $BUILD_VARS_FILE"
+          else
+            echo "BuildVars file not found, skipping inline injection."
+          fi
