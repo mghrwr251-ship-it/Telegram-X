@@ -39,18 +39,26 @@ jobs:
       - name: Inject API Keys & Environment Configs
         run: |
           BUILD_VARS_FILE=$(find . -name "BuildVars.java" -o -name "BuildVars.kt" | head -n 1)
+          if [ -z "$BUILD_VARS_FILE" ]; then
+            DEFAULT_FILE=$(find . -name "BuildVars.java.default" -o -name "BuildVars.kt.default" | head -n 1)
+            if [ -f "$DEFAULT_FILE" ]; then
+              BUILD_VARS_FILE="${DEFAULT_FILE%.default}"
+              cp "$DEFAULT_FILE" "$BUILD_VARS_FILE"
+              echo "Created $BUILD_VARS_FILE from template."
+            fi
+          fi
+
           if [ -f "$BUILD_VARS_FILE" ]; then
             sed -i 's/APP_ID = [0-9]*;/APP_ID = 29741001;/g' "$BUILD_VARS_FILE"
             sed -i 's/APP_HASH = "[^"]*";/APP_HASH = "de12199e0e1a6c5e6aec7cafb8fd336a";/g' "$BUILD_VARS_FILE"
             echo "Successfully injected API credentials into $BUILD_VARS_FILE"
           else
-            echo "BuildVars file not found, skipping inline injection."
+            echo "Error: BuildVars file or template not found!"
             exit 1
           fi
 
       - name: Update App Name in All Languages
         run: |
-          # البحث وتحديث اسم التطبيق في جميع ملفات strings.xml بمختلف اللغات
           find . -name "strings.xml" -print0 | while IFS= read -r -d '' file; do
             sed -i 's/<string name="app_name">[^<]*<\/string>/<string name="app_name">تلجرام فيلسوف عصري<\/string>/g' "$file"
           done
