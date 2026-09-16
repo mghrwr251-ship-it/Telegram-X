@@ -32,37 +32,27 @@ jobs:
           chmod +x scripts/setup.sh
           ./scripts/setup.sh --skip-sdk-setup || true
 
-      - name: Create local.properties
+      - name: Setup API Keys & Environment Configs
         run: |
+          touch local.properties
           echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "telegram.api_id=29741001" >> local.properties
+          echo "telegram.api_hash=de12199e0e1a6c5e6aec7cafb8fd336a" >> local.properties
 
-      - name: Inject API Keys & Environment Configs
+      - name: Comprehensive App Renaming (All Languages)
         run: |
-          BUILD_VARS_FILE=$(find . -name "BuildVars.java" -o -name "BuildVars.kt" | head -n 1)
-          if [ -z "$BUILD_VARS_FILE" ]; then
-            DEFAULT_FILE=$(find . -name "BuildVars.java.default" -o -name "BuildVars.kt.default" | head -n 1)
-            if [ -f "$DEFAULT_FILE" ]; then
-              BUILD_VARS_FILE="${DEFAULT_FILE%.default}"
-              cp "$DEFAULT_FILE" "$BUILD_VARS_FILE"
-              echo "Created $BUILD_VARS_FILE from template."
-            fi
-          fi
-
-          if [ -f "$BUILD_VARS_FILE" ]; then
-            sed -i 's/APP_ID = [0-9]*;/APP_ID = 29741001;/g' "$BUILD_VARS_FILE"
-            sed -i 's/APP_HASH = "[^"]*";/APP_HASH = "de12199e0e1a6c5e6aec7cafb8fd336a";/g' "$BUILD_VARS_FILE"
-            echo "Successfully injected API credentials into $BUILD_VARS_FILE"
-          else
-            echo "Error: BuildVars file or template not found!"
-            exit 1
-          fi
-
-      - name: Update App Name in All Languages
-        run: |
-          find . -name "strings.xml" -print0 | while IFS= read -r -d '' file; do
-            sed -i 's/<string name="app_name">[^<]*<\/string>/<string name="app_name">تلجرام فيلسوف عصري<\/string>/g' "$file"
+          # 1. استبدال اسم التطبيق app_name في كافة ملفات اللغات (strings.xml)
+          find . -name "strings.xml" -type f -print0 | while IFS= read -r -d '' file; do
+            sed -i -E 's/<string name="app_name"[^>]*>[^<]*<\/string>/<string name="app_name">تلجرام فيلسوف عصري<\/string>/g' "$file"
+            sed -i -E 's/Telegram X/تلجرام فيلسوف عصري/g' "$file"
+            sed -i -E 's/تيليجرام X/تلجرام فيلسوف عصري/g' "$file"
           done
-          echo "App name successfully updated across all strings.xml files."
+
+          # 2. استبدال شامل لكافة نصوص الأكواد لضمان عدم ظهور الاسم القديم إطلاقاً
+          find . \( -name "*.java" -o -name "*.kt" -o -name "*.xml" \) -type f -not -path "*/.git/*" -exec sed -i 's/Telegram X/تلجرام فيلسوف عصري/g' {} +
+          find . \( -name "*.java" -o -name "*.kt" -o -name "*.xml" \) -type f -not -path "*/.git/*" -exec sed -i 's/تيليجرام X/تلجرام فيلسوف عصري/g' {} +
+
+          echo "App name successfully updated and locked across all languages and files."
 
       - name: Build APK with Gradle
         run: |
