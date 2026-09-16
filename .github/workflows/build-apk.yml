@@ -32,28 +32,29 @@ jobs:
           chmod +x scripts/setup.sh
           ./scripts/setup.sh --skip-sdk-setup || true
 
+      - name: Create local.properties
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+
       - name: Inject API Keys & Environment Configs
         run: |
-          # حقن مفاتيح الـ API الخاصة بتليجرام في ملف الإعدادات
           BUILD_VARS_FILE=$(find . -name "BuildVars.java" -o -name "BuildVars.kt" | head -n 1)
           if [ -f "$BUILD_VARS_FILE" ]; then
             sed -i 's/APP_ID = [0-9]*;/APP_ID = 29741001;/g' "$BUILD_VARS_FILE"
-            sed -i 's/APP_HASH = "[^"]*";/APP_HASH = "de12199e0e1a6c5ебаес7cafb8fd336a";/g' "$BUILD_VARS_FILE"
+            sed -i 's/APP_HASH = "[^"]*";/APP_HASH = "de12199e0e1a6c5e6aec7cafb8fd336a";/g' "$BUILD_VARS_FILE"
             echo "Successfully injected API credentials into $BUILD_VARS_FILE"
           else
             echo "BuildVars file not found, skipping inline injection."
+            exit 1
           fi
 
-      - name: Change App Name to تلجرام فيلسوف عصري
+      - name: Update App Name in All Languages
         run: |
-          # البحث عن ملفات strings.xml وتعديل اسم التطبيق الافتراضي
+          # البحث وتحديث اسم التطبيق في جميع ملفات strings.xml بمختلف اللغات
           find . -name "strings.xml" -print0 | while IFS= read -r -d '' file; do
-            # البحث عن الوسم الذي يحتوي على اسم التطبيق وتعديله
-            if grep -q "app_name" "$file"; then
-              sed -i 's/<string name="app_name">[^<]*<\/string>/<string name="app_name">تلجرام فيلسوف عصري<\/string>/g' "$file"
-              echo "Updated app name in $file"
-            fi
+            sed -i 's/<string name="app_name">[^<]*<\/string>/<string name="app_name">تلجرام فيلسوف عصري<\/string>/g' "$file"
           done
+          echo "App name successfully updated across all strings.xml files."
 
       - name: Build APK with Gradle
         run: |
